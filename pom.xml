@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.r-ishikava</groupId>
+    <groupId>com.github.rishikava</groupId>
     <artifactId>http-server</artifactId>
     <version>1.0-SNAPSHOT</version>
 
