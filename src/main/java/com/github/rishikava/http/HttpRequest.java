@@ -18,11 +18,11 @@ public record HttpRequest (
             throw new IllegalArgumentException("Path must start with '/'");
         }
 
-        if (!version.equals("HTTP/1.1")) {
-            throw new IllegalArgumentException("Only HTTP/1.1 supported");
+        if (!version.equals("HTTP/1.1") && !version.equals("HTTP/1.0")) {
+            throw new IllegalArgumentException("Only HTTP/1.0 and HTTP/1.1 supported");
         }
 
-        if (!headers.containsKey("Host")) {
+        if (!headers.containsKey("Host") && !version.equals("HTTP/1.0")) {
             throw new IllegalArgumentException("Missing Host header");
         }
 

@@ -1,38 +1,95 @@
 package com.github.rishikava.http;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpParser {
     public HttpRequest parseRequest(InputStream inputStream) throws IOException {
-        BufferedReader in = new BufferedReader(
-            new InputStreamReader(inputStream)
-        );
+        BufferedInputStream in = new BufferedInputStream(inputStream);
 
-        // Parse request line
-        String requestLine = in.readLine();
-        String[] parts = requestLine.split(" ");
+        // Request line
+        String requestLine = readLine(in);
+        String[] parts = requestLine.split(" ", 3);
+
+        if (parts.length != 3) {
+            throw new IOException("Malformed request line");
+        }
+
         String method = parts[0];
         String path = parts [1];
         String version = parts[2];
 
-        // Parse headers
+        // Headers
         Map<String, String> headers = new HashMap<>();
-        String line;
-        while (!(line = in.readLine()).isEmpty()) {
-            String[] headerParts = line.split(": ", 2);
-            headers.put(headerParts[0], headerParts[1]);
+        while (true) {
+            String line = readLine(in);
+
+            if (line.isEmpty()) {
+                break;
+            }
+
+            String[] headerParts = line.split(":", 2);
+
+            String name = headerParts[0].trim();
+            String value = headerParts[1].trim();
+
+            headers.put(name, value);
         }
 
-        // Parse body
+        // Body
         String body = null;
         if (headers.containsKey("Content-Length")) {
             int length = Integer.parseInt(headers.get("Content-Length"));
-            char[] buffer = new char[length];
-            in.read(buffer, 0, length);
-            body = new String(buffer);
+            byte[] bodyBytes = readExactly(in, length);
+            body = new String(bodyBytes, StandardCharsets.UTF_8);
         }
 
         return new HttpRequest(method, path, version, headers, body);
+    }
+
+	private String readLine(InputStream in) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        int previous = -1;
+
+        while (true) {
+            int current = in.read();
+
+            if (current == -1) {
+                throw new EOFException();
+            }
+
+            // Found \r\n
+            if (previous == '\r' && current == '\n') {
+                break;
+            }
+
+            if (previous != -1) {
+                buffer.write(previous);
+            }
+
+            previous = current;
+        }
+
+        return buffer.toString(StandardCharsets.US_ASCII);
+	}
+
+    private byte[] readExactly(InputStream in, int length) throws IOException {
+        byte[] buffer = new byte[length];
+
+        int offset = 0;
+
+        while (offset < length) {
+            int read = in.read(buffer, offset, length - offset);
+
+            if (read == -1) {
+                throw new EOFException();
+            }
+
+            offset += read;
+        }
+
+        return buffer;
     }
 }
