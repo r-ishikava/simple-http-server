@@ -16,8 +16,8 @@ public class HttpParser {
             throw new IOException("Malformed request line");
         }
 
-        String method = parts[0];
-        String path = parts [1];
+        HttpMethod method = HttpMethod.valueOf(parts[0]);
+        String path = parts[1];
         String version = parts[2];
 
         // Headers
@@ -30,6 +30,10 @@ public class HttpParser {
             }
 
             String[] headerParts = line.split(":", 2);
+
+            if (headerParts.length != 2) {
+                throw new IOException("Malformed header: " + line);
+            }
 
             String name = headerParts[0].trim();
             String value = headerParts[1].trim();
@@ -76,6 +80,10 @@ public class HttpParser {
 	}
 
     private byte[] readExactly(InputStream in, int length) throws IOException {
+        if (length < 0) {
+            throw new IllegalArgumentException("Invalid Content-Length: " + length);
+        }
+
         byte[] buffer = new byte[length];
 
         int offset = 0;

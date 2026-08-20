@@ -11,7 +11,12 @@ public class Client {
                 new InputStreamReader(socket.getInputStream())
             );
 
-            out.println("Hello world");
+            out.print(
+                "GET / HTTP/1.1\r\n" +
+                "Host: localhost\r\n" +
+                "\r\n"
+            );
+            out.flush();
 
             // Read response
             String line;

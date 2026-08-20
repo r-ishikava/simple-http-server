@@ -3,17 +3,13 @@ package com.github.rishikava.http;
 import java.util.Map;
 
 public record HttpRequest (
-    String method,
+    HttpMethod method,
     String path,
     String version,
     Map<String, String> headers,
     String body
 ) {
     public HttpRequest {
-        if (!method.matches("GET|POST|PUT|DELETE|HEAD|OPTIONS")) {
-            throw new IllegalArgumentException("Invalid meethod: " + method);
-        }
-
         if (path == null || !path.startsWith("/")) {
             throw new IllegalArgumentException("Path must start with '/'");
         }
