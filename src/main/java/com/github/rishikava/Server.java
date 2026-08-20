@@ -2,10 +2,12 @@ package com.github.rishikava;
 import java.io.*;
 import java.net.*;
 
+import com.github.rishikava.handler.EchoHandler;
 import com.github.rishikava.http.*;
 import com.github.rishikava.router.*;
 import com.github.rishikava.util.*;
 
+// TODO: Implement a separate entry point with the server config
 public class Server {
     public static void main(String[] args) throws IOException {
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
@@ -13,6 +15,8 @@ public class Server {
 
             HttpParser parser = new HttpParser();
             Router router = new Router();
+            EchoHandler handler = new EchoHandler();
+            router.register(new Route(HttpMethod.POST, "/echo"), handler);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();

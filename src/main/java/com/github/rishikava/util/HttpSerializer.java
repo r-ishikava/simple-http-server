@@ -43,6 +43,10 @@ public class HttpSerializer {
         sb.append("\r\n");
         sb.append(response.body());
 
+        System.out.println(
+                sb.toString().replace("\r", "\\r").replace("\n", "\\n")
+                );
+
         return sb.toString();
     }
     
