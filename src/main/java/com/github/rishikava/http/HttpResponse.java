@@ -7,7 +7,7 @@ public record HttpResponse (
     int code,
     String status,
     Map<String, String> headers,
-    String body
+    byte[] body
 ) {
     public HttpResponse {
         if (!("HTTP/1.0".equals(version) || "HTTP/1.1".equals(version))) {
@@ -21,6 +21,6 @@ public record HttpResponse (
 
         status =  status == null ? "Default status" : status;
         headers = headers == null ? Map.of() : headers;
-        body = body == null ? "" : body;
+        body = body == null ? new byte[0] : body;
     }
 }

@@ -26,12 +26,10 @@ public class Server {
                 HttpRequest request = parser.parseRequest(clientSocket.getInputStream());
                 HttpResponse response = router.route(request);
 
-                PrintWriter out = new PrintWriter(
-                    clientSocket.getOutputStream(), true
-                );
+                OutputStream out = clientSocket.getOutputStream();
 
-                String client_response = HttpSerializer.serialize(response);
-                out.println(client_response);
+                byte[] client_response = HttpSerializer.serialize(response);
+                out.write(client_response);
                 
                 // Handle client...
                 clientSocket.close();

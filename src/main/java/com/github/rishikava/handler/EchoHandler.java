@@ -16,7 +16,7 @@ public class EchoHandler implements Handler {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "text/plain");
         if (contentLength != null) {
-            headers.put("Content-Length", contentLength.toString());
+            headers.put("Content-Length", contentLength);
         }
 
         return new HttpResponse(
@@ -24,7 +24,7 @@ public class EchoHandler implements Handler {
             200,
             "OK",
             headers,
-            request.body()
+            request.body().getBytes()
         );
 	}
 }

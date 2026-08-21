@@ -6,7 +6,7 @@ import com.github.rishikava.http.HttpRequest;
 import com.github.rishikava.http.HttpResponse;
 
 public class HttpSerializer {
-    public static String serialize(HttpRequest request) {
+    public static byte[] serialize(HttpRequest request) {
         StringBuilder sb = new StringBuilder();
 
         sb.append(request.method()).append(' ')
@@ -23,10 +23,10 @@ public class HttpSerializer {
         sb.append("\r\n");
         sb.append(request.body());
 
-        return sb.toString();
+        return sb.toString().getBytes();
     }
 
-    public static String serialize(HttpResponse response) {
+    public static byte[] serialize(HttpResponse response) {
         StringBuilder sb = new StringBuilder();
 
         sb.append(response.version()).append(' ')
@@ -41,13 +41,15 @@ public class HttpSerializer {
         }
 
         sb.append("\r\n");
-        sb.append(response.body());
 
-        System.out.println(
-                sb.toString().replace("\r", "\\r").replace("\n", "\\n")
-                );
+        byte[] bodylessResponse = sb.toString().getBytes();
+        byte[] body = response.body();
+        byte[] byteResponse = new byte[bodylessResponse.length + body.length];
 
-        return sb.toString();
+        System.arraycopy(bodylessResponse, 0, byteResponse, 0, bodylessResponse.length);
+        System.arraycopy(body, 0, byteResponse, bodylessResponse.length, body.length);
+
+        return byteResponse;
     }
     
     public static HttpRequest deserializeRequest(String request) {
