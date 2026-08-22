@@ -7,6 +7,7 @@ import com.github.rishikava.handler.*;
 import com.github.rishikava.http.*;
 import com.github.rishikava.router.*;
 import com.github.rishikava.util.*;
+import com.github.rishikava.exceptions.*;
 
 // TODO: Implement a separate entry point with the server config
 public class Server {
@@ -23,20 +24,28 @@ public class Server {
             router.register(new Route(HttpMethod.GET, "/static/index.html"), handler2);
 
             while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket.getInetAddress());
+                try (Socket clientSocket = serverSocket.accept()) {
+                    System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-                //TODO: non http requests hangs the server
-                HttpRequest request = parser.parseRequest(clientSocket.getInputStream());
-                HttpResponse response = router.route(request);
+                    OutputStream out = clientSocket.getOutputStream();
 
-                OutputStream out = clientSocket.getOutputStream();
+                    try {
+                        //TODO: non http requests hangs the server
+                        HttpRequest request = parser.parseRequest(clientSocket.getInputStream());
+                        HttpResponse response = router.route(request);
 
-                byte[] client_response = HttpSerializer.serialize(response);
-                out.write(client_response);
-                
-                // Handle client...
-                clientSocket.close();
+                        byte[] clientResponse = HttpSerializer.serialize(response);
+                        out.write(clientResponse);
+                    } catch (BadRequestException e) {
+                        //TODO: server should not need to do this?
+                        HttpResponse response = new HttpResponse("HTTP/1.X", 400, "Bad Request", null, null);
+
+                        byte[] clientResponse = HttpSerializer.serialize(response);
+                        out.write(clientResponse);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

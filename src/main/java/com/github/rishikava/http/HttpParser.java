@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.rishikava.exceptions.BadRequestException;
+
 public class HttpParser {
     public HttpRequest parseRequest(InputStream inputStream) throws IOException {
         BufferedInputStream in = new BufferedInputStream(inputStream);
@@ -13,7 +15,7 @@ public class HttpParser {
         String[] parts = requestLine.split(" ", 3);
 
         if (parts.length != 3) {
-            throw new IOException("Malformed request line");
+            throw new BadRequestException("Malformed request line");
         }
 
         HttpMethod method = HttpMethod.valueOf(parts[0]);
@@ -32,7 +34,7 @@ public class HttpParser {
             String[] headerParts = line.split(":", 2);
 
             if (headerParts.length != 2) {
-                throw new IOException("Malformed header: " + line);
+                throw new BadRequestException("Malformed header: " + line);
             }
 
             String name = headerParts[0].trim();
@@ -61,7 +63,7 @@ public class HttpParser {
             int current = in.read();
 
             if (current == -1) {
-                throw new EOFException();
+                throw new BadRequestException("EOF");
             }
 
             // Found \r\n
@@ -81,7 +83,7 @@ public class HttpParser {
 
     private byte[] readExactly(InputStream in, int length) throws IOException {
         if (length < 0) {
-            throw new IllegalArgumentException("Invalid Content-Length: " + length);
+            throw new BadRequestException("Invalid Content-Length: " + length);
         }
 
         byte[] buffer = new byte[length];
@@ -92,7 +94,7 @@ public class HttpParser {
             int read = in.read(buffer, offset, length - offset);
 
             if (read == -1) {
-                throw new EOFException();
+                throw new BadRequestException("EOF");
             }
 
             offset += read;

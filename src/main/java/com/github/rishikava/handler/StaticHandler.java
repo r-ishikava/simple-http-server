@@ -37,11 +37,11 @@ public class StaticHandler implements Handler {
         try {
 			requestedFile = requestedFile.toRealPath();
 		} catch (IOException e) {
-            throw new IllegalArgumentException("File " + requestedFile.toString() + " does not exist");
+            return new HttpResponse(request.version(), 400, "File Not Found", null, null);
 		}
 
         if (!requestedFile.startsWith(root)) {
-            throw new IllegalArgumentException("Requested file: " + requestedFile.toString() + " does not reside in the server static files root");
+            return new HttpResponse(request.version(), 404, "Unauthorized Access", null, null);
         }
 
         String fileName = requestedFile.getFileName().toString();
@@ -66,7 +66,7 @@ public class StaticHandler implements Handler {
 
             return new HttpResponse(request.version(), 200, "OK", headers, data);
         } catch (IOException e) {
-            throw new IllegalArgumentException("File not found: " + requestedFile.toString());
+            return new HttpResponse(request.version(), 400, "File Not Found", null, null);
         }
 	}
 }
