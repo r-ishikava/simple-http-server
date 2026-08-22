@@ -1,8 +1,9 @@
 package com.github.rishikava;
 import java.io.*;
 import java.net.*;
+import java.nio.file.Path;
 
-import com.github.rishikava.handler.EchoHandler;
+import com.github.rishikava.handler.*;
 import com.github.rishikava.http.*;
 import com.github.rishikava.router.*;
 import com.github.rishikava.util.*;
@@ -16,7 +17,10 @@ public class Server {
             HttpParser parser = new HttpParser();
             Router router = new Router();
             EchoHandler handler = new EchoHandler();
+            StaticHandler handler2 = new StaticHandler(Path.of("/home/rafael/projects/http-server/static"));
             router.register(new Route(HttpMethod.POST, "/echo"), handler);
+            router.register(new Route(HttpMethod.GET, "/static/image.png"), handler2);
+            router.register(new Route(HttpMethod.GET, "/static/index.html"), handler2);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
