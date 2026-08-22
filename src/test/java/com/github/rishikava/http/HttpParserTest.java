@@ -34,7 +34,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("GET", request.method());
+        assertEquals(HttpMethod.GET, request.method());
         assertEquals("/index.html", request.path());
         assertEquals("HTTP/1.1", request.version());
         
@@ -72,7 +72,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("POST", request.method());
+        assertEquals(HttpMethod.POST, request.method());
         assertEquals("/api/users", request.path());
         assertEquals("application/json", request.headers().get("Content-Type"));
         assertEquals("24", request.headers().get("Content-Length"));
@@ -91,7 +91,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("POST", request.method());
+        assertEquals(HttpMethod.POST, request.method());
         assertEquals("username=johndoe&password=secret", request.body());
     }
     
@@ -106,7 +106,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("POST", request.method());
+        assertEquals(HttpMethod.POST, request.method());
         assertEquals("", request.body());
     }
     
@@ -123,7 +123,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("PUT", request.method());
+        assertEquals(HttpMethod.PUT, request.method());
         assertEquals("/files/document.txt", request.path());
         assertEquals("This is file content", request.body());
     }
@@ -137,7 +137,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("DELETE", request.method());
+        assertEquals(HttpMethod.DELETE, request.method());
         assertEquals("/users/42", request.path());
         assertNull(request.body());
     }
@@ -151,7 +151,7 @@ class HttpParserTest {
         
         HttpRequest request = parse(raw);
         
-        assertEquals("HEAD", request.method());
+        assertEquals(HttpMethod.HEAD, request.method());
         assertEquals("/index.html", request.path());
     }
     
