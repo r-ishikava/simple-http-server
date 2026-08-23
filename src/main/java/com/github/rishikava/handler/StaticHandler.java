@@ -28,7 +28,13 @@ public class StaticHandler implements Handler {
 	@Override
 	public HttpResponse handle(HttpRequest request) {
         Path requestedFile = Path.of(request.path());
-        requestedFile = requestedFile.subpath(1, requestedFile.getNameCount());
+
+        try {
+            requestedFile = requestedFile.subpath(1, requestedFile.getNameCount());
+        } catch (IllegalArgumentException e) {
+            requestedFile = Path.of("");
+        }
+
         if (requestedFile.toString().startsWith("/")) {
             requestedFile = this.root.resolve(requestedFile.toString().substring(1)).normalize();
         } else {
@@ -37,12 +43,13 @@ public class StaticHandler implements Handler {
         try {
 			requestedFile = requestedFile.toRealPath();
 		} catch (IOException e) {
-            return new HttpResponse(request.version(), 400, "File Not Found", null, null);
+            return new HttpResponse(request.version(), 404, "File Not Found", null, null);
 		}
 
-        if (!requestedFile.startsWith(root)) {
-            return new HttpResponse(request.version(), 404, "Unauthorized Access", null, null);
+        if (!requestedFile.startsWith(root) || requestedFile.getFileName().toString().startsWith(".")) {
+            return new HttpResponse(request.version(), 404, "File Not Found", null, null);
         }
+
 
         String fileName = requestedFile.getFileName().toString();
         String extension = "";
@@ -66,7 +73,7 @@ public class StaticHandler implements Handler {
 
             return new HttpResponse(request.version(), 200, "OK", headers, data);
         } catch (IOException e) {
-            return new HttpResponse(request.version(), 400, "File Not Found", null, null);
+            return new HttpResponse(request.version(), 404, "File Not Found", null, null);
         }
 	}
 }
