@@ -300,4 +300,34 @@ class HttpParserTest {
         
         assertThrows(IllegalArgumentException.class, () -> parse(raw));
     }
+
+    @Test
+    @DisplayName("Should handle loose line endings or fail gracefully")
+    void shouldHandleLooseLineEndings() {
+        String raw = "GET /index.html HTTP/1.1\nHost: localhost\n\n";
+        // HttpParser strictly expects \r\n in readLine
+        assertThrows(IOException.class, () -> parse(raw));
+    }
+
+    @Test
+    @DisplayName("Should handle duplicate headers")
+    void shouldHandleDuplicateHeaders() throws IOException {
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Custom: foo\r\n" +
+                     "X-Custom: bar\r\n" +
+                     "\r\n";
+        HttpRequest request = parse(raw);
+        assertEquals("bar", request.headers().get("X-Custom"));
+    }
+
+    @Test
+    @DisplayName("Should handle header with extra spaces around colon")
+    void shouldHandleHeaderSpacing() throws IOException {
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host   :   localhost   \r\n" +
+                     "\r\n";
+        HttpRequest request = parse(raw);
+        assertEquals("localhost", request.headers().get("Host"));
+    }
 }
