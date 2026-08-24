@@ -43,11 +43,11 @@ public class StaticHandler implements Handler {
         try {
 			requestedFile = requestedFile.toRealPath();
 		} catch (IOException e) {
-            return new HttpResponse(request.version(), 404, "File Not Found", null, null);
+            return HttpResponse.notFound(request.version());
 		}
 
         if (!requestedFile.startsWith(root) || requestedFile.getFileName().toString().startsWith(".")) {
-            return new HttpResponse(request.version(), 404, "File Not Found", null, null);
+            return HttpResponse.notFound(request.version());
         }
 
 
@@ -71,9 +71,9 @@ public class StaticHandler implements Handler {
             headers.put("Content-Type", mimeType);
             headers.put("Content-Length", String.valueOf(data.length));
 
-            return new HttpResponse(request.version(), 200, "OK", headers, data);
+            return HttpResponse.ok(request.version(), headers, data);
         } catch (IOException e) {
-            return new HttpResponse(request.version(), 404, "File Not Found", null, null);
+            return HttpResponse.notFound(request.version());
         }
 	}
 }

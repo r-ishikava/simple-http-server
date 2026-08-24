@@ -19,12 +19,6 @@ public class EchoHandler implements Handler {
             headers.put("Content-Length", contentLength);
         }
 
-        return new HttpResponse(
-            request.version(),
-            200,
-            "OK",
-            headers,
-            request.body().getBytes()
-        );
+        return HttpResponse.ok(request.version(), headers, request.body().getBytes());
 	}
 }

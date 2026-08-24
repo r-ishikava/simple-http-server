@@ -11,6 +11,6 @@ public class SleepHandler implements Handler {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return new HttpResponse(request.version(), 200, null, null, null);
+        return HttpResponse.ok(request.version(), null, new byte[0]);
     }
 }

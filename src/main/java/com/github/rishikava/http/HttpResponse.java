@@ -20,7 +20,47 @@ public record HttpResponse (
         }
 
         status =  status == null ? "Default status" : status;
-        headers = headers == null ? Map.of() : headers;
-        body = body == null ? new byte[0] : body;
+        headers = headers == null ? Map.of() : Map.copyOf(headers);
+        body = body == null ? new byte[0] : body.clone();
+    }
+
+    public static HttpResponse ok(String version, Map<String,String> headers, byte[] body) {
+        return new HttpResponse(
+            version,
+            200,
+            "OK",
+            headers,
+            body
+        );
+    }
+
+    public static HttpResponse notFound(String version) {
+        return new HttpResponse(
+            version,
+            404,
+            "Not Found",
+            Map.of(),
+            new byte[0]
+        );
+    }
+
+    public static HttpResponse internalError(String version) {
+        return new HttpResponse(
+            version,
+            500,
+            "Internal Server Error",
+            Map.of(),
+            new byte[0]
+        );
+    }
+
+    public static HttpResponse requestTimeout(String version) {
+        return new HttpResponse(
+            version,
+            408,
+            "Request Timeout",
+            Map.of(),
+            null
+        );
     }
 }
