@@ -1,4 +1,4 @@
-package com.github.rishikava;
+package com.github.rishikava.server;
 import java.io.*;
 import java.net.*;
 

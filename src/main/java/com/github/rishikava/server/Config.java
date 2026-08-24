@@ -14,6 +14,7 @@ public class Config {
     private final int maxRequestSize;
     private final Path staticDirectory;
     private final int backlog;
+    private final int maxThreads;
     private final Router router;
     private final HttpParser parser;
     private final HttpSerializer serializer;
@@ -25,6 +26,7 @@ public class Config {
         this.maxRequestSize = builder.maxRequestSize;
         this.staticDirectory = builder.staticDirectory;
         this.backlog = builder.backlog;
+        this.maxThreads = builder.maxThreads;
         this.router = builder.router;
         this.parser = builder.parser;
         this.serializer = builder.serializer;
@@ -43,6 +45,7 @@ public class Config {
         private int maxRequestSize = 1000;
         private Path staticDirectory = Paths.get(System.getProperty("user.dir") + "/static");
         private int backlog = 50;
+        private int maxThreads = 10;
 
         public Builder router(Router router) {
             this.router = router;
@@ -86,6 +89,11 @@ public class Config {
 
         public Builder backlog(int backlog) {
             this.backlog = backlog;
+            return this;
+        }
+
+        public Builder maxThreads(int maxThreads) {
+            this.maxThreads = maxThreads;
             return this;
         }
 
@@ -145,4 +153,8 @@ public class Config {
 	public int getBacklog() {
 		return backlog;
 	}
+
+    public int getMaxThreads() {
+        return maxThreads;
+    }
 }

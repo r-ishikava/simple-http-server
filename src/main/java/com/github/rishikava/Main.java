@@ -15,9 +15,11 @@ public class Main {
         Router router = new Router();
         EchoHandler echoHandler = new EchoHandler();
         StaticHandler staticHandler = new StaticHandler(Path.of("/home/rafael/projects/http-server/static"));
+        SleepHandler sleepHandler = new SleepHandler();
         router.register(new Route(HttpMethod.POST, "/echo"), echoHandler);
         router.register(new Route(HttpMethod.GET, "/static/image.png"), staticHandler);
         router.register(new Route(HttpMethod.GET, "/static/index.html"), staticHandler);
+        router.register(new Route(HttpMethod.GET, "/sleep"), sleepHandler);
 
         HttpParser parser = new HttpParser();
         HttpSerializer serializer = new HttpSerializer();
@@ -26,7 +28,8 @@ public class Main {
             .router(router)
             .parser(parser)
             .serializer(serializer)
-            .port(8000)
+            .port(8080)
+            .maxThreads(10)
             .build();
 
         Server server = new Server(config);
