@@ -18,7 +18,13 @@ public class HttpParser {
             throw new BadRequestException("Malformed request line");
         }
 
-        HttpMethod method = HttpMethod.valueOf(parts[0]);
+        HttpMethod method;
+        try {
+            method = HttpMethod.valueOf(parts[0]);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid method");
+        }
+
         String path = parts[1];
         String version = parts[2];
 
@@ -46,7 +52,12 @@ public class HttpParser {
         // Body
         String body = null;
         if (headers.containsKey("Content-Length")) {
-            int length = Integer.parseInt(headers.get("Content-Length"));
+            int length;
+            try {
+                length = Integer.parseInt(headers.get("Content-Length"));
+            } catch (NumberFormatException e) {
+                throw new BadRequestException("Failed parsing Content-Length header");
+            }
             byte[] bodyBytes = readExactly(in, length);
             body = new String(bodyBytes, StandardCharsets.UTF_8);
         }

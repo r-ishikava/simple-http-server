@@ -3,6 +3,9 @@ package com.github.rishikava.http;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import com.github.rishikava.exceptions.BadRequestException;
+
 import java.io.*;
 import java.util.Map;
 
@@ -256,7 +259,7 @@ class HttpParserTest {
                      "Content-Length: abc\r\n" +
                      "\r\n";
         
-        assertThrows(IllegalArgumentException.class, () -> parse(raw));
+        assertThrows(BadRequestException.class, () -> parse(raw));
     }
     
     @Test
