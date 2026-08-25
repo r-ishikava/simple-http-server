@@ -23,6 +23,7 @@ public class Server {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
+                clientSocket.setSoTimeout(config.getRequestTimeout());
                 this.executor.submit(() -> handleClient(clientSocket));
             }
         }
@@ -35,12 +36,14 @@ public class Server {
             OutputStream out = clientSocket.getOutputStream();
 
             try {
-                //TODO: non http requests hangs the server
                 HttpRequest request = config.getParser().parseRequest(clientSocket.getInputStream());
                 HttpResponse response = config.getRouter().route(request);
 
                 byte[] clientResponse = HttpSerializer.serialize(response);
                 out.write(clientResponse);
+            } catch (SocketTimeoutException e) {
+                HttpResponse response = HttpResponse.requestTimeout("HTTP/1.X");
+                out.write(HttpSerializer.serialize(response));
             } catch (BadRequestException e) {
                 //TODO: server should not need to do this?
                 HttpResponse response = new HttpResponse("HTTP/1.X", 400, "Bad Request", null, null);

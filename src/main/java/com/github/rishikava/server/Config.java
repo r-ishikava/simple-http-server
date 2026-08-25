@@ -41,7 +41,7 @@ public class Config {
         // Fields with defaults
         private int port = 8080;
         private String host = "localhost";
-        private int requestTimeout = 10;
+        private int requestTimeout = 10000;
         private int maxRequestSize = 1000;
         private Path staticDirectory = Paths.get(System.getProperty("user.dir") + "/static");
         private int backlog = 50;
