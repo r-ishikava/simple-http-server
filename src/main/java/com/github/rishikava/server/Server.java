@@ -29,30 +29,45 @@ public class Server {
         }
     }
 
-    private void handleClient(Socket clientSocket) {
-        try (clientSocket) {
-            System.out.println("Client connected: " + clientSocket.getInetAddress());
-
-            OutputStream out = clientSocket.getOutputStream();
-
-            try {
-                HttpRequest request = config.getParser().parseRequest(clientSocket.getInputStream());
-                HttpResponse response = config.getRouter().route(request);
-
-                byte[] clientResponse = HttpSerializer.serialize(response);
-                out.write(clientResponse);
-            } catch (SocketTimeoutException e) {
-                HttpResponse response = HttpResponse.requestTimeout("HTTP/1.X");
+    void handleClient(Socket clientSocket) {
+        try (clientSocket;
+             BufferedInputStream in = new BufferedInputStream(clientSocket.getInputStream());
+             OutputStream out = clientSocket.getOutputStream();
+        ) {
+            while (true) {
+                HttpRequest request;
+                HttpResponse response;
+                try {
+                    request = config.getParser().parseRequest(in);
+                } catch (SocketTimeoutException e) {
+                    break;
+                } catch (BadRequestException e) {
+                    response = new HttpResponse("HTTP/1.1", 400, "Bad Request", null, null);
+                    out.write(HttpSerializer.serialize(response));
+                    break;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    break;
+                }
+                boolean keepAlive = shouldKeepAlive(request);
+                response = config.getRouter().route(request);
                 out.write(HttpSerializer.serialize(response));
-            } catch (BadRequestException e) {
-                //TODO: server should not need to do this?
-                HttpResponse response = new HttpResponse("HTTP/1.X", 400, "Bad Request", null, null);
-
-                byte[] clientResponse = HttpSerializer.serialize(response);
-                out.write(clientResponse);
+                if (!keepAlive) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    boolean shouldKeepAlive(HttpRequest request) {
+        boolean hasConnectionHeader = request.headers().containsKey("Connection");
+        if (hasConnectionHeader) {
+            String connectionTokens = request.headers().get("Connection");
+            if (connectionTokens.contains("close")) return false;
+            else if (connectionTokens.contains("keep-alive")) return true;
+        }
+        if ("HTTP/1.1".equals(request.version())) return true;
+        if ("HTTP/1.0".equals(request.version())) return false;
+        return false;
     }
 }

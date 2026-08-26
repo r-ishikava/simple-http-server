@@ -21,7 +21,7 @@ class HttpParserTest {
 
     private HttpRequest parse(String raw) throws IOException {
         ByteArrayInputStream input = new ByteArrayInputStream(raw.getBytes());
-        return parser.parseRequest(input);
+        return parser.parseRequest(new BufferedInputStream(input));
     }
 
     // ==================== BASIC REQUESTS ====================

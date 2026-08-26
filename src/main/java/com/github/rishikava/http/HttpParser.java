@@ -7,9 +7,7 @@ import java.util.Map;
 import com.github.rishikava.exceptions.BadRequestException;
 
 public class HttpParser {
-    public HttpRequest parseRequest(InputStream inputStream) throws IOException {
-        BufferedInputStream in = new BufferedInputStream(inputStream);
-
+    public HttpRequest parseRequest(BufferedInputStream in) throws IOException {
         // Request line
         String requestLine = readLine(in);
         String[] parts = requestLine.split(" ", 3);
