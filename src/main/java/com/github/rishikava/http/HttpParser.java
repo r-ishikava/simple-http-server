@@ -1,8 +1,8 @@
 package com.github.rishikava.http;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.github.rishikava.exceptions.BadRequestException;
 
@@ -27,7 +27,7 @@ public class HttpParser {
         String version = parts[2];
 
         // Headers
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         while (true) {
             String line = readLine(in);
 

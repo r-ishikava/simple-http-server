@@ -63,8 +63,8 @@ public class Server {
         boolean hasConnectionHeader = request.headers().containsKey("Connection");
         if (hasConnectionHeader) {
             String connectionTokens = request.headers().get("Connection");
-            if (connectionTokens.contains("close")) return false;
-            else if (connectionTokens.contains("keep-alive")) return true;
+            if (connectionTokens.toLowerCase().contains("close")) return false;
+            else if (connectionTokens.toLowerCase().contains("keep-alive")) return true;
         }
         if ("HTTP/1.1".equals(request.version())) return true;
         if ("HTTP/1.0".equals(request.version())) return false;

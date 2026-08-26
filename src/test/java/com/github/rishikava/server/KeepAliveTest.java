@@ -173,6 +173,22 @@ class KeepAliveTest {
         assertEquals(-1, client.getInputStream().read(), "Server should close an idle connection");
     }
 
+    @Test
+    @DisplayName("Server honors Connection: close regardless of header casing")
+    void connectionHeaderCaseInsensitive() throws IOException {
+        // Idle timeout longer than the client's: only an honored Connection
+        // header can close the socket before the client's own read times out.
+        serverSide.setSoTimeout(TEST_READ_TIMEOUT_MS * 6);
+
+        executor.submit(() -> server.handleClient(serverSide));
+
+        writeRequest(client.getOutputStream(),
+            "GET /missing HTTP/1.1\r\nHost: localhost\r\ncOnNeCtIoN: cLoSe\r\n\r\n");
+
+        assertEquals(404, readResponse(client.getInputStream()).code());
+        assertEquals(-1, client.getInputStream().read(), "Mixed-case Connection header must still close");
+    }
+
     // ==================== HELPERS ====================
 
     private static HttpRequest request(String version, String connectionValue) {

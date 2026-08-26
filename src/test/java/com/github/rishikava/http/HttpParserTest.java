@@ -333,4 +333,65 @@ class HttpParserTest {
         HttpRequest request = parse(raw);
         assertEquals("localhost", request.headers().get("Host"));
     }
+
+    // ==================== CASE-INSENSITIVE HEADER NAMES ====================
+
+    @Test
+    @DisplayName("Should look up headers regardless of name casing")
+    void shouldLookupHeadersCaseInsensitively() throws IOException {
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "HoSt: localhost\r\n" +
+                     "X-CuStOm-HeAdEr: foo\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+
+        assertEquals("localhost", request.headers().get("Host"));
+        assertEquals("localhost", request.headers().get("host"));
+        assertEquals("localhost", request.headers().get("HOST"));
+        assertEquals("foo", request.headers().get("x-custom-header"));
+    }
+
+    @Test
+    @DisplayName("Should preserve header value casing")
+    void shouldPreserveValueCasing() throws IOException {
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Case-Sensitive: MiXeD CaSe Value\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+
+        assertEquals("MiXeD CaSe Value", request.headers().get("X-CASE-SENSITIVE"));
+    }
+
+    @Test
+    @DisplayName("Should use Content-Length for body framing regardless of its casing")
+    void shouldUseContentLengthRegardlessOfCasing() throws IOException {
+        String raw = "POST /api HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "cOnTeNt-lEnGtH: 5\r\n" +
+                     "\r\n" +
+                     "hello";
+
+        HttpRequest request = parse(raw);
+
+        assertEquals("hello", request.body());
+    }
+
+    @Test
+    @DisplayName("Should collapse headers that differ only in name casing")
+    void shouldCollapseDuplicateCasing() throws IOException {
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Custom: foo\r\n" +
+                     "x-custom: bar\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+
+        // Same logical header, last value wins
+        assertEquals(2, request.headers().size());
+        assertEquals("bar", request.headers().get("X-CUSTOM"));
+    }
 }
