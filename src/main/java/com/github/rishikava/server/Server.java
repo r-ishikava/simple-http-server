@@ -11,10 +11,15 @@ import com.github.rishikava.util.HttpSerializer;
 public class Server {
     private final Config config;
     private final ExecutorService executor;
+    private final HttpParser parser;
 
     public Server(Config config) {
         this.config = config;
         this.executor = Executors.newFixedThreadPool(config.getMaxThreads());
+        this.parser = new HttpParser();
+        this.parser.setMaxLineSize(this.config.getMaxLineSize());
+        this.parser.setMaxHeaderCount(this.config.getMaxHeaderCount());
+        this.parser.setMaxBodySize(this.config.getMaxBodySize());
     }
 
     public void run() throws IOException {
@@ -38,7 +43,7 @@ public class Server {
                 HttpRequest request;
                 HttpResponse response;
                 try {
-                    request = config.getParser().parseRequest(in);
+                    request = this.parser.parseRequest(in);
                 } catch (SocketTimeoutException e) {
                     break;
                 } catch (BadRequestException e) {

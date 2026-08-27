@@ -7,11 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import com.github.rishikava.handler.EchoHandler;
 import com.github.rishikava.http.HttpMethod;
-import com.github.rishikava.http.HttpParser;
 import com.github.rishikava.http.HttpRequest;
 import com.github.rishikava.router.Route;
 import com.github.rishikava.router.Router;
-import com.github.rishikava.util.HttpSerializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,8 +42,6 @@ class KeepAliveTest {
 
         Config config = Config.builder()
             .router(router)
-            .parser(new HttpParser())
-            .serializer(new HttpSerializer())
             .build();
 
         server = new Server(config);
