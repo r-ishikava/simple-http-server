@@ -5,8 +5,19 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.github.rishikava.exceptions.BadRequestException;
+import com.github.rishikava.exceptions.RequestTooLargeException;
 
 public class HttpParser {
+    private int maxLineSize;
+    private int maxHeaderCount;
+    private int maxBodySize;
+
+    public HttpParser() {
+        this.maxLineSize = 8000;
+        this.maxHeaderCount = 100;
+        this.maxBodySize = 1000000;
+    }
+
     public HttpRequest parseRequest(BufferedInputStream in) throws IOException {
         // Request line
         String requestLine = readLine(in);
@@ -45,6 +56,10 @@ public class HttpParser {
             String value = headerParts[1].trim();
 
             headers.put(name, value);
+
+            if (headers.size() > this.maxHeaderCount) {
+                throw new RequestTooLargeException("Maximum number of headers exceeded");
+            }
         }
 
         // Body
@@ -55,6 +70,9 @@ public class HttpParser {
                 length = Integer.parseInt(headers.get("Content-Length"));
             } catch (NumberFormatException e) {
                 throw new BadRequestException("Failed parsing Content-Length header");
+            }
+            if (length > this.maxBodySize) {
+                throw new RequestTooLargeException("Request too large: " + length);
             }
             byte[] bodyBytes = readExactly(in, length);
             body = new String(bodyBytes, StandardCharsets.UTF_8);
@@ -84,6 +102,10 @@ public class HttpParser {
                 buffer.write(previous);
             }
 
+            if (buffer.size() > this.maxLineSize) {
+                throw new RequestTooLargeException("Maximum line size exceeded");
+            }
+
             previous = current;
         }
 
@@ -110,5 +132,17 @@ public class HttpParser {
         }
 
         return buffer;
+    }
+
+    public void setMaxLineSize(int maxLineSize) {
+        this.maxLineSize = maxLineSize;
+    }
+
+    public void setMaxHeaderCount(int maxHeaderCount) {
+        this.maxHeaderCount = maxHeaderCount;
+    }
+
+    public void setMaxBodySize(int maxBodySize) {
+        this.maxBodySize = maxBodySize;
     }
 }

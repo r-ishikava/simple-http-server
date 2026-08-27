@@ -45,6 +45,10 @@ public class Server {
                     response = new HttpResponse("HTTP/1.1", 400, "Bad Request", null, null);
                     out.write(HttpSerializer.serialize(response));
                     break;
+                } catch (RequestTooLargeException e) {
+                    response = new HttpResponse("HTTP/1.1", 413, "Request Too Large", null, null);
+                    out.write(HttpSerializer.serialize(response));
+                    break;
                 } catch (Exception e) {
                     e.printStackTrace();
                     break;

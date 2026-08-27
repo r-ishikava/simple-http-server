@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.github.rishikava.exceptions.BadRequestException;
+import com.github.rishikava.exceptions.RequestTooLargeException;
 
 import java.io.*;
 import java.util.Map;
@@ -393,5 +394,158 @@ class HttpParserTest {
         // Same logical header, last value wins
         assertEquals(2, request.headers().size());
         assertEquals("bar", request.headers().get("X-CUSTOM"));
+    }
+
+    // ==================== MAX REQUEST SIZE LIMITS ====================
+
+    // --- maxLineSize (applies to request line + each header line) ---
+
+    @Test
+    @DisplayName("Should reject request line exceeding maxLineSize")
+    void shouldRejectRequestLineExceedingMaxLineSize() {
+        parser.setMaxLineSize(14); // "GET / HTTP/1.1" is 14 chars
+        String raw = "GET /very-long-path HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "\r\n";
+
+        assertThrows(RequestTooLargeException.class, () -> parse(raw));
+    }
+
+    @Test
+    @DisplayName("Should accept request line exactly at maxLineSize")
+    void shouldAcceptRequestLineAtMaxLineSize() throws IOException {
+        String requestLine = "GET / HTTP/1.1"; // 14 chars
+        // Use a short Host header so only the request line is at the limit
+        parser.setMaxLineSize(requestLine.length());
+        String raw = requestLine + "\r\n" +
+                     "Host: a\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+        assertEquals("/" , request.path());
+    }
+
+    @Test
+    @DisplayName("Should reject header line exceeding maxLineSize")
+    void shouldRejectHeaderLineExceedingMaxLineSize() {
+        parser.setMaxLineSize(15); // "Host: localhost" is 15 chars
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Long-Header: 1234567890\r\n" +
+                     "\r\n";
+
+        assertThrows(RequestTooLargeException.class, () -> parse(raw));
+    }
+
+    @Test
+    @DisplayName("Should accept header line exactly at maxLineSize")
+    void shouldAcceptHeaderLineAtMaxLineSize() throws IOException {
+        String headerLine = "Host: localhost"; // 15 chars
+        parser.setMaxLineSize(headerLine.length());
+        String raw = "GET / HTTP/1.1\r\n" +
+                     headerLine + "\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+        assertEquals("localhost", request.headers().get("Host"));
+    }
+
+    // --- maxHeaderCount ---
+
+    @Test
+    @DisplayName("Should reject too many distinct headers")
+    void shouldRejectTooManyHeaders() {
+        parser.setMaxHeaderCount(2);
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Header-1: foo\r\n" +
+                     "X-Header-2: bar\r\n" +
+                     "\r\n";
+
+        assertThrows(RequestTooLargeException.class, () -> parse(raw));
+    }
+
+    @Test
+    @DisplayName("Should accept header count exactly at limit")
+    void shouldAcceptHeaderCountAtLimit() throws IOException {
+        parser.setMaxHeaderCount(2);
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Header-1: foo\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+        assertEquals(2, request.headers().size());
+    }
+
+    @Test
+    @DisplayName("Should not count duplicate case-insensitive headers twice towards limit")
+    void shouldNotCountDuplicateCaseInsensitiveHeadersTwice() throws IOException {
+        parser.setMaxHeaderCount(2);
+        String raw = "GET / HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "X-Custom: foo\r\n" +
+                     "x-custom: bar\r\n" +
+                     "\r\n";
+
+        HttpRequest request = parse(raw);
+        assertEquals(2, request.headers().size());
+        assertEquals("bar", request.headers().get("X-Custom"));
+    }
+
+    // --- maxBodySize (via Content-Length) ---
+
+    @Test
+    @DisplayName("Should reject body exceeding maxBodySize")
+    void shouldRejectBodyExceedingMaxBodySize() {
+        parser.setMaxBodySize(5);
+        String raw = "POST /api HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "Content-Length: 6\r\n" +
+                     "\r\n" +
+                     "123456";
+
+        assertThrows(RequestTooLargeException.class, () -> parse(raw));
+    }
+
+    @Test
+    @DisplayName("Should accept body exactly at maxBodySize")
+    void shouldAcceptBodyAtMaxBodySize() throws IOException {
+        parser.setMaxBodySize(5);
+        String raw = "POST /api HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "Content-Length: 5\r\n" +
+                     "\r\n" +
+                     "hello";
+
+        HttpRequest request = parse(raw);
+        assertEquals("hello", request.body());
+    }
+
+    @Test
+    @DisplayName("Should accept body below maxBodySize")
+    void shouldAcceptBodyBelowMaxBodySize() throws IOException {
+        parser.setMaxBodySize(100);
+        String raw = "POST /api HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "Content-Length: 5\r\n" +
+                     "\r\n" +
+                     "hello";
+
+        HttpRequest request = parse(raw);
+        assertEquals("hello", request.body());
+    }
+
+    @Test
+    @DisplayName("Should reject body exceeding maxBodySize regardless of header casing")
+    void shouldRejectBodyExceedingMaxBodySizeCaseInsensitive() {
+        parser.setMaxBodySize(5);
+        String raw = "POST /api HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "cOnTeNt-LeNgTh: 6\r\n" +
+                     "\r\n" +
+                     "123456";
+
+        assertThrows(RequestTooLargeException.class, () -> parse(raw));
     }
 }

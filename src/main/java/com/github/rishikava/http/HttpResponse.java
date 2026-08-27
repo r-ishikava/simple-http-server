@@ -14,7 +14,6 @@ public record HttpResponse (
             throw new IllegalArgumentException("Only HTTP/1.0 and HTTP/1.1 supported");
         }
 
-        // TODO code handling
         if (code < 100 || code > 599) {
             throw new IllegalArgumentException("Invalid response code: " + code);
         }

@@ -42,7 +42,7 @@ public class Config {
         private int port = 8080;
         private String host = "localhost";
         private int requestTimeout = 10000;
-        private int maxRequestSize = 1000;
+        private int maxRequestSize = 1000000;
         private Path staticDirectory = Paths.get(System.getProperty("user.dir") + "/static");
         private int backlog = 50;
         private int maxThreads = 10;
