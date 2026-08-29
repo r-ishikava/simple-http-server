@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import com.github.rishikava.handler.EchoHandler;
 import com.github.rishikava.http.HttpMethod;
 import com.github.rishikava.http.HttpRequest;
-import com.github.rishikava.router.Route;
 import com.github.rishikava.router.Router;
 
 import java.io.ByteArrayOutputStream;
@@ -38,7 +37,8 @@ class KeepAliveTest {
     @BeforeEach
     void setUp() throws IOException {
         Router router = new Router();
-        router.register(new Route(HttpMethod.POST, "/echo"), new EchoHandler());
+        // router.register(new Route(HttpMethod.POST, "/echo"), new EchoHandler());
+        router.register(HttpMethod.POST, "/echo", new EchoHandler());
 
         Config config = Config.builder()
             .router(router)

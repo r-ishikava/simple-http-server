@@ -15,10 +15,9 @@ public class Main {
         EchoHandler echoHandler = new EchoHandler();
         StaticHandler staticHandler = new StaticHandler(Path.of("/home/rafael/projects/http-server/static"));
         SleepHandler sleepHandler = new SleepHandler();
-        router.register(new Route(HttpMethod.POST, "/echo"), echoHandler);
-        router.register(new Route(HttpMethod.GET, "/static/image.png"), staticHandler);
-        router.register(new Route(HttpMethod.GET, "/static/index.html"), staticHandler);
-        router.register(new Route(HttpMethod.GET, "/sleep"), sleepHandler);
+        router.register(HttpMethod.POST, "/echo", echoHandler);
+        router.register(HttpMethod.GET, "/static/{:file}", staticHandler);
+        router.register(HttpMethod.GET, "/sleep", sleepHandler);
 
         Config config = Config.builder()
             .router(router)
