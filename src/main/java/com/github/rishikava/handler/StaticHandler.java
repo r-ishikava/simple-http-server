@@ -29,12 +29,15 @@ public class StaticHandler implements Handler {
 	public HttpResponse handle(HttpRequest request) {
         Path requestedFile = Path.of(request.path());
 
+        // Removes static files dir from path
         try {
             requestedFile = requestedFile.subpath(1, requestedFile.getNameCount());
         } catch (IllegalArgumentException e) {
             requestedFile = Path.of("");
         }
 
+        // Path traversal protection
+        // Disallows hidden dotfiles
         if (requestedFile.toString().startsWith("/")) {
             requestedFile = this.root.resolve(requestedFile.toString().substring(1)).normalize();
         } else {
@@ -45,11 +48,9 @@ public class StaticHandler implements Handler {
 		} catch (IOException e) {
             return HttpResponse.notFound(request.version());
 		}
-
         if (!requestedFile.startsWith(root) || requestedFile.getFileName().toString().startsWith(".")) {
             return HttpResponse.notFound(request.version());
         }
-
 
         String fileName = requestedFile.getFileName().toString();
         String extension = "";

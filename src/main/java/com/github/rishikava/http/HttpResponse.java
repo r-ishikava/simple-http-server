@@ -38,7 +38,7 @@ public record HttpResponse (
             version,
             404,
             "Not Found",
-            Map.of(),
+            Map.of("Content-Length", "0"),
             new byte[0]
         );
     }
@@ -48,7 +48,7 @@ public record HttpResponse (
             version,
             500,
             "Internal Server Error",
-            Map.of(),
+            Map.of("Content-Length", "0"),
             new byte[0]
         );
     }
@@ -58,7 +58,7 @@ public record HttpResponse (
             version,
             408,
             "Request Timeout",
-            Map.of(),
+            Map.of("Content-Length", "0"),
             null
         );
     }
